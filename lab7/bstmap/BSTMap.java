@@ -42,6 +42,10 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     @Override
     public boolean containsKey(K key) {
+        if (key == null) {
+            throw new IllegalArgumentException("calls get() with a null key");
+        }
+
         return get(key) != null;
     }
 
@@ -124,7 +128,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return res;
     }
 
-    public void keySetHelper(Node p, Set<K> s) {
+    private void keySetHelper(Node p, Set<K> s) {
         if (p == null) {
             return;
         }
@@ -169,7 +173,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     }
 
 
-    public Node removeHelper(K key, V value, Node p) {
+    private Node removeHelper(K key, V value, Node p) {
         int cmp = key.compareTo(p.key);
         if (cmp > 0) {
             p.right = removeHelper(key, value, p.right);
@@ -205,7 +209,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
      * @param p
      * @return
      */
-    public Node findMin(Node p) {
+    private Node findMin(Node p) {
         if (p.left == null) {
             return p;
         }
@@ -217,7 +221,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
      * @param p
      * @return
      */
-    public Node findMax(Node p) {
+    private Node findMax(Node p) {
         if (p.right == null) {
             return p;
         }
@@ -228,7 +232,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
      * Return the size of the tree rooted at p
      * @return
      */
-    public int sizeT(Node p) {
+    private int sizeT(Node p) {
         if (p == null) {
             return 0;
         }
@@ -245,7 +249,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     }
 
 
-    public void getAllKeys(List<K> container, Node p) {
+    private void getAllKeys(List<K> container, Node p) {
         if (p == null) {
             return;
         }
@@ -285,5 +289,18 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         for (Node n: allChildren) {
             printTreeStructure(n, indent + 1);
         }
+    }
+
+    public void printInOrder() {
+        printInOrderHelper(root);
+    }
+
+    private void printInOrderHelper(Node p) {
+        if (p == null) {
+            return;
+        }
+        printInOrderHelper(p.left);
+        System.out.println(p.key);
+        printInOrderHelper(p.right);
     }
 }
