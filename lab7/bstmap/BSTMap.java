@@ -46,7 +46,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
             throw new IllegalArgumentException("calls get() with a null key");
         }
 
-        return get(key) != null;
+        return keySet().contains(key);
     }
 
     /** Returns the value mapped to by KEY in the subtree rooted in P.
