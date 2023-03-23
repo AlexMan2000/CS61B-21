@@ -5,7 +5,7 @@ import java.util.Observable;
 
 
 /** The state of a game of 2048.
- *  @author TODO: Ni Jiasheng
+ *  @author Ni Jiasheng
  */
 public class Model extends Observable {
     /** Current contents of the board. */
@@ -110,15 +110,63 @@ public class Model extends Observable {
         boolean changed;
         changed = false;
 
-        // TODO: Modify this.board (and perhaps this.score) to account
+        // Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        this.board.setViewingPerspective(side);
+        for (int col = 0; col < size(); col++) {
+            boolean moved = moveTilesInColumn(col);
+            if (moved) {
+                changed = true;
+            }
+        }
+
 
         checkGameOver();
         if (changed) {
             setChanged();
         }
         return changed;
+    }
+
+    /**
+     * Return the row coordinate we should place our tile(Using Up Operation)
+     * Given the (col, row) of the tile that we want to move
+     * @return whether the tile is actually moved
+     */
+    private boolean moveTilesInColumn(int col) {
+        boolean[] mergedTile = new boolean[size()];
+        int moved = 0;
+        for (int row = size() - 1; row >= 0; row--) {
+            Tile t = this.board.tile(col, row);
+            if (t != null) {
+                for (int r = row + 1; r < size(); r++) {
+                    Tile next = this.board.tile(col, r);
+                    if (next != null) {
+                        if (next.value() == t.value() && !mergedTile[r]) {
+                            boolean merged = this.board.move(col, r, t);
+                            assert merged;
+                            this.score += 2 * t.value();
+                            moved++;
+                            mergedTile[r] = true;
+                        } else {
+                            boolean merged = this.board.move(col, r - 1, t);
+                            assert !merged;
+                            if (r - 1 != row) {
+                                moved++;
+                            }
+                        }
+                    } else {
+                        if (r == size() - 1) {
+                            boolean merged = this.board.move(col, r, t);
+                            assert !merged;
+                            moved++;
+                        }
+                    }
+                }
+            }
+        }
+        return moved > 0;
     }
 
     /** Checks if the game is over and sets the gameOver variable
@@ -137,7 +185,7 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
-        // TODO: Fill in this function.
+        // Fill in this function.
         for (Tile tile: b) {
             if (tile == null) {
                 return true;
@@ -152,7 +200,12 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        // Fill in this function.
+        for (Tile tile: b) {
+            if (tile != null && tile.value() == MAX_PIECE) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -163,8 +216,48 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
-        return false;
+        // Fill in this function.
+        int flag = 0;
+        int size = b.size();
+        // 从lower-left corner开始往右往上逐个判断
+        for (int row = 0; row < size - 1; row++) {
+            for (int col = 0; col < size - 1; col++) {
+                Tile curr = b.tile(col, row);
+                Tile right = b.tile(col + 1, row);
+                Tile up = b.tile(col, row + 1);
+                if (curr == null) {
+                    continue;
+                }
+                if ((right != null && curr.value() == right.value())
+                        || (up != null && curr.value() == up.value())) {
+                    flag += 1;
+                }
+            }
+        }
+
+        // 最后一列判断一下
+        for (int row = 0; row < size - 1; row++) {
+            Tile curr = b.tile(size - 1, row);
+            Tile up = b.tile(size - 1, row + 1);
+            if (curr == null) {
+                continue;
+            }
+            if (up != null && curr.value() == up.value()) {
+                flag++;
+            }
+        }
+        // 最后一行判断一下
+        for (int col = 0; col < size - 1; col++) {
+            Tile curr = b.tile(col, size - 1);
+            Tile right = b.tile(col + 1, size - 1);
+            if (curr == null) {
+                continue;
+            }
+            if (right != null && curr.value() == right.value()) {
+                flag++;
+            }
+        }
+        return emptySpaceExists(b) || flag > 0;
     }
 
 
