@@ -121,11 +121,12 @@ public class Model extends Observable {
             }
         }
 
-
         checkGameOver();
         if (changed) {
             setChanged();
         }
+
+        this.board.setViewingPerspective(side.NORTH);
         return changed;
     }
 
