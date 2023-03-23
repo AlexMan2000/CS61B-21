@@ -51,6 +51,8 @@ public class Tile {
     /** Return the result of merging OTHERTILE with me after moving to
      *  (COL, ROW). */
     public Tile merge(int col, int row, Tile otherTile) {
+//        System.out.println(value);
+//        System.out.println(otherTile.value());
         assert value == otherTile.value();
         next = otherTile.next = new Tile(2 * value, col, row);
         return next;

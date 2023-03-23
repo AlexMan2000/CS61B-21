@@ -151,12 +151,13 @@ public class Model extends Observable {
                             moved++;
                             mergedTile[r] = true;
                         } else {
-                            boolean merged = this.board.move(col, r - 1, t);
-                            assert !merged;
-                            if (r - 1 != row) {
+                            if (r - 1 > row) {
+                                boolean merged = this.board.move(col, r - 1, t);
+                                assert !merged;
                                 moved++;
                             }
                         }
+                        break;
                     } else {
                         if (r == size() - 1) {
                             boolean merged = this.board.move(col, r, t);
