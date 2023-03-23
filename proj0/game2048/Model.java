@@ -126,7 +126,7 @@ public class Model extends Observable {
             setChanged();
         }
 
-        this.board.setViewingPerspective(side.NORTH);
+        this.board.setViewingPerspective(Side.NORTH);
         return changed;
     }
 
