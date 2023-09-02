@@ -59,6 +59,17 @@ public class Commit implements Serializable {
         this.UID = this.generateID();
     }
 
+
+    public String getBlobFromFileName(String filename) {
+        if (this.pathToBlob.containsKey(filename)) {
+            return this.pathToBlob.get(filename);
+        } else {
+            System.out.println("File does not exist in that commit.");
+            return null;
+        }
+    }
+
+
     public void saveCommit() {
         Utils.writeObject(Utils.join(savePath, this.UID), this);
     }

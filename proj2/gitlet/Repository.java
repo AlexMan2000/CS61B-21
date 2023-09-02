@@ -190,7 +190,7 @@ public class Repository {
         currentStage.clearFileMapping();
         currentStage.saveStage();
         // 4.4 Set the modified fileMapping to the newCommit
-        newCommit.setPathToBlob(fileMappingToBeModified);
+        newCommit.setPathToBlob(fileMappingToBeModified); // Not necessary, pass by reference
         // 5. Set the UID of the new commit
         newCommit.setUID(newCommit.generateID());
         // 6. Serialize and save the commit object to the disk
@@ -287,17 +287,40 @@ public class Repository {
     }
 
 
-
+    /**
+     *
+     * @param filename
+     */
     public static void checkoutFile(String filename) {
+        Commit headCommit = getCommit();
+        String blobObj = headCommit.getBlobFromFileName(filename);
+        if (blobObj != null) {
+            Blob blob = Blob.fromFile(blobObj);
+            writeContents(join(CWD, filename), readContents(blob.getFileContent()));
+        }
+
+
+
+
 
     }
 
+    /**
+     *
+     * @param commitID
+     * @param filename
+     */
     public static void checkoutFile(String commitID, String filename) {
         return;
     }
 
-    public static void checkoutBranch(String branchName) {
 
+    /**
+     *
+     * @param branchName
+     */
+    public static void checkoutBranch(String branchName) {
+        return;
     }
 
     /**

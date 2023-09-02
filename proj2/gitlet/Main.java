@@ -74,7 +74,7 @@ public class Main {
                         break;
                 }
                 String branchName = args[1];
-                Repository.checkout(branchName);
+//                Repository.checkout(branchName);
                 break;
             case "branch":
                 validateNumArgs("branch", args, 2);
