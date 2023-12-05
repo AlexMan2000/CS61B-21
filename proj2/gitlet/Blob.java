@@ -36,6 +36,10 @@ public class Blob implements Serializable {
         return filePointer;
     }
 
+    public byte[] getFileBytes() {
+        return Utils.readContents(filePointer);
+    }
+
     public void setFileContent(File fileContent) {
         this.filePointer = fileContent;
     }
