@@ -51,6 +51,6 @@ The file structure is the following:
     - e3
     - e3
     - etc
-- HEAD     FILE
+- HEAD     FILE, stores ref: refs/heads/branch_name
 - index    FILE
 

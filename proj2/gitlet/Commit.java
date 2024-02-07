@@ -185,9 +185,4 @@ public class Commit implements Serializable {
         sb.append(message);
         return sb.toString();
     }
-
-//    public static void main(String[] args) {
-//        Commit c = new Commit("initial commit", null);
-//        System.out.println(c);
-//    }
 }

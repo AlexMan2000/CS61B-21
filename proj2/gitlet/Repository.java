@@ -26,15 +26,6 @@ public class Repository {
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
-
-    /* TODO: fill in the rest of this class. */
-//    public static final File STAGING_DIR = join(GITLET_DIR, "staging");
-//    public static final File ADDITION_DIR = join(STAGING_DIR, "addition");
-//    public static final File REMOVAL_DIR = join(STAGING_DIR, "removal");
-
-    //
-//    public static final File COMMIT_DIR = join(GITLET_DIR, "commits");
-//    public static final File BLOB_DIR = join(GITLET_DIR, "blobs");
     public static final File OBJECT_DIR = join(GITLET_DIR, "objects");
     public static final File HEADS_DIR = join(GITLET_DIR, "refs");
     public static final File HEAD = join(GITLET_DIR, "HEAD");
@@ -87,7 +78,7 @@ public class Repository {
         }catch (Exception e) {
             e.printStackTrace();
         }
-        // 4. Initialize an empty stage object
+        // 4. Initialize an empty stage object, representing staging area
         Stage stage = new Stage();
         stage.saveStage();
     }
@@ -103,7 +94,7 @@ public class Repository {
             // 1.1 See if the file content is the same as in the current commit.
             // Get the current commit(active branch)
             Commit currentCommit = getCommit();
-            // Get the blobID
+            // Get the all the blobs managed by the current commit
             Map<String, String> fileNameToBlob = currentCommit.getPathToBlob();
             if (fileNameToBlob.containsKey(filename)) {
                 // If the file exists in the recent commit, compare the content
@@ -123,6 +114,7 @@ public class Repository {
             }
         } else {
             System.out.println("File does not exist.");
+            System.exit(0);
         }
     }
 
@@ -204,7 +196,7 @@ public class Repository {
         newCommit.saveCommit();
         // 7. Move the head pointer of the current branch and HEAD
         writeContents(HEAD, newCommit.getUID());
-        File masterPath = join(LOCAL_HEADS, "master.txt");
+        File masterPath = join(LOCAL_HEADS, "master");
         writeContents(masterPath, newCommit.getUID());
     }
 
@@ -226,17 +218,23 @@ public class Repository {
     }
 
 
-//    public static void globalLog() {
-//        StringBuilder sb = new StringBuilder();
-//        Commit curr;
-//        for (String filename: plainFilenamesIn(COMMIT_DIR)) {
-//            curr = getCommit(filename);
-//            sb.append("==="+"\r\n");
-//            sb.append(curr);
-//            sb.append("\r\n\r\n");
-//        }
-//        System.out.println(sb);
-//    }
+    public static void globalLog() {
+        StringBuilder sb = new StringBuilder();
+        Commit curr;
+        for (String filename: plainFilenamesIn(OBJECT_DIR)) {
+            // Circumvent those non-commit object
+            try {
+                curr = getCommit(filename);
+                curr.getType();
+            } catch(Exception e) {
+                continue;
+            }
+            sb.append("==="+"\r\n");
+            sb.append(curr);
+            sb.append("\r\n\r\n");
+        }
+        System.out.println(sb);
+    }
 
 
 //    public static void find(String message) {
@@ -259,13 +257,13 @@ public class Repository {
     public static void status() {
         StringBuilder sb = new StringBuilder();
         sb.append("=== Branches ==="+"\r\n");
-        String currentBranchName = readContentsAsString(HEAD);
+        String currentCommitSHA1ID = parseHEAD(readContentsAsString(HEAD));
         for (String filename: plainFilenamesIn(LOCAL_HEADS)) {
-            String branchID = readContentsAsString(join(LOCAL_HEADS,filename));
-            if (currentBranchName.equals(branchID)) {
-                sb.append("*" + filename + "\r\n"); // i,e. master.txt, other-branch.txt
+            String branchFrontID = readContentsAsString(join(LOCAL_HEADS,filename));
+            if (currentCommitSHA1ID.equals(branchFrontID)) {
+                sb.append("*" + filename + "\r\n");
             } else {
-                sb.append(filename + "\r\n"); // i,e. master.txt, other-branch.txt
+                sb.append(filename + "\r\n");
             }
         };
         sb.append("\r\n");
@@ -432,8 +430,12 @@ public class Repository {
      */
     private static Commit getCommit() {
         String content = readContentsAsString(HEAD);
-        return Commit.fromFile(parseString(content));
+        return Commit.fromFile(parseHEAD(content));
     }
+
+//    private static GitObject getObject(String UID) {
+//
+//    }
 
 
     /**
@@ -441,16 +443,18 @@ public class Repository {
      * @param content The content of HEAD file
      * @return SHA1 ID of a commit object
      */
-    private static String parseString(String content) {
+    private static String parseHEAD(String content) {
         // We could use the property that SHA1 ID only contains 0-9a-f
         if (content.contains(":")) {
-            // 1. It is not SHA1ID, but ref: refs/heads/master
-            String[] split = content.split(":");
+            // 1. It is not SHA1ID, but ref: refs/heads/current_branch
+            String[] splits = content.split(":");
 
+            File filepath = join(GITLET_DIR, splits[1].substring(1));
+            return readContentsAsString(filepath);
         } else {
+            // 2. It is a SHA1 ID, directly return
             return content;
         }
-        return null;
     }
 
     /**
