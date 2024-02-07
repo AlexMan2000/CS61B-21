@@ -6,23 +6,23 @@
 
 ### Class 1 - Commit
 
-#### Fields
+#### Private Fields
 
-1. **timestamp**: The exact timestamp when the commit object is created by gitlet
-2. **message**: The message that is passed in by user by gitlet commit -m "message"
-3. **parent**: The pointer to the parent commit object
-4. **UID**: Universal Hash SHA1 ID for each commit object
-5. **TYPE**: Indicate whether it is a commit or a blob
+1. **String timestamp**: The exact timestamp when the commit object is created by gitlet
+2. **String message**: The message that is passed in by user by gitlet commit -m "message"
+3. **List\<String\> parent**: The SHAIDs' for all parent commit objects
+4. **String UID**: Universal Hash SHA1 ID for each commit object
+5. **String TYPE**: Indicate whether it is a commit or a blob
 
 
 ### Class 2 - Blob
 
-#### Fields
+#### Private Fields
 
-1. **UID**: SHA1 ID for Blob Object
-2. **filePointer**: Pointer to the file descriptor File(filepath), used for later filereading
-3. **fileName**: The name of the file being pointed to, could be the same across different versions
-4. **TYPE**: Distinguish between Commit and Blob Object
+1. **String UID**: SHA1 ID for Blob Object
+2. **File filePointer**: Pointer to the file descriptor File(filepath), used for later filereading
+3. **String fileName**: The name of the file being pointed to, could be the same across different versions
+4. **String TYPE**: Distinguish between Commit and Blob Object
 
 ### Class 3 - Stage
 

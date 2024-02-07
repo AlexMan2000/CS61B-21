@@ -17,21 +17,18 @@ public class Main {
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
-                // TODO: handle the `init` command
                 // init command has only one argument
                 validateNumArgs("init", args, 1);
                 // Run the init command
                 Repository.init();
                 break;
             case "add":
-                // TODO: handle the `add [filename]` command
+                // handle the `add [filename]` command
                 validateNumArgs("add", args, 2);
                 String filename = args[1];
                 Repository.add(filename);
                 break;
-            // TODO: FILL THE REST IN
             case "commit":
-                //TODO
                 validateNumArgs("commit", args, 2);
                 String message = args[1];
                 Repository.commit(message);

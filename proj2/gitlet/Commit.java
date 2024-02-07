@@ -32,16 +32,22 @@ public class Commit implements Serializable {
     // Maps from filepath to blobID
     private Map<String, String> pathToBlob = new HashMap<>();
     // All parents' ID of current Commit Object, could be more than one when merging happens
+    // Important Note: Here we don't store the pointer to parent object
+    // Instead we store SHAIDs' for parent Commit Object to avoid
+    // Seralization Problem.
     private List<String> parentID;
     // Used to distinguish between commit and blob
-    private static final String TYPE = "commit";
+    private final String TYPE = "commit";
 
     /** The message of this Commit, specified by the user */
     private String message;
 
 
-    /* TODO: fill in the rest of this class. */
-
+    /**
+     * Constructor
+     * @param message the message passed in by the user through git commit -m "message"
+     * @param parentID SHAIDs' of parent commit object
+     */
     public Commit (String message, List<String> parentID) {
         this.message = message;
         this.parentID = parentID;
@@ -62,6 +68,11 @@ public class Commit implements Serializable {
     }
 
 
+    /**
+     * Get the blob SHAID from the filename specified
+     * @param filename the name of the file, not the relative path of the file, i.e. filename.txt
+     * @return The Blob SHA1 ID, if
+     */
     public String getBlobFromFileName(String filename) {
         if (this.pathToBlob.containsKey(filename)) {
             return this.pathToBlob.get(filename);
@@ -72,19 +83,30 @@ public class Commit implements Serializable {
     }
 
 
+    /**
+     * Serialize current commit object to the specified savePath
+     */
     public void saveCommit() {
         Utils.writeObject(Utils.join(savePath, this.UID), this);
     }
 
 
+    /**
+     * Deserialize the commit object given its SHA1ID
+     * @param UID SHA1 ID of the commit object
+     * @return A commit object with SHA1 ID
+     */
     public static Commit fromFile(String UID) {
         return Utils.readObject(Utils.join(savePath, UID), Commit.class);
     }
 
-    // See the design spec, same Commit means the same metadata, same fileToBlobMapping,
-    // same parentID
+    /**
+     * Generate the SHA1 ID for current commit object
+     * @return The generated SHA1 ID of current commit object
+     */
     public String generateID() {
-        return Utils.sha1(timestamp, pathToBlob.toString(), parentID.toString());
+        // SHA1 ID uniquely determined by (timestamp, pathToBlob, parentID, TYPE)
+        return Utils.sha1(timestamp, pathToBlob.toString(), parentID.toString(), TYPE);
     }
 
     /**

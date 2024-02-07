@@ -12,7 +12,7 @@ public class Blob implements Serializable {
     private File filePointer; // A pointer to the stored file on the disk
     private String fileName;  // The file that blob object is pointing to
 
-    private static final String TYPE = "blob";
+    private final String TYPE = "blob";
     // The same Blob object means the same fileName and the same content from filePointer
 
     public Blob(File filePointer) {

@@ -2,12 +2,11 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.sql.Array;
 import java.util.*;
 
 import static gitlet.Utils.*;
-
-// TODO: any imports you need here
 
 /** Represents a gitlet repository.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -17,7 +16,6 @@ import static gitlet.Utils.*;
  */
 public class Repository {
     /**
-     * TODO: add instance variables here.
      *
      * List all instance variables of the Repository class here with a useful
      * comment above them describing what that variable represents and how that
@@ -428,14 +426,38 @@ public class Repository {
     }
 
 
-
-
-
-
+    /**
+     * Get the commit that's being pointed by HEAD
+     * @return a commit object currently being pointed at
+     */
     private static Commit getCommit() {
-        return Commit.fromFile(readContentsAsString(HEAD));
+        String content = readContentsAsString(HEAD);
+        return Commit.fromFile(parseString(content));
     }
 
+
+    /**
+     * Return the SHA1 ID of a commit given the content in the HEAD file
+     * @param content The content of HEAD file
+     * @return SHA1 ID of a commit object
+     */
+    private static String parseString(String content) {
+        // We could use the property that SHA1 ID only contains 0-9a-f
+        if (content.contains(":")) {
+            // 1. It is not SHA1ID, but ref: refs/heads/master
+            String[] split = content.split(":");
+
+        } else {
+            return content;
+        }
+        return null;
+    }
+
+    /**
+     * Overloaded
+     * @param UID
+     * @return
+     */
     private static Commit getCommit(String UID) {
         return Commit.fromFile(UID);
     }

@@ -8,9 +8,11 @@ import java.util.TimeZone;
 
 public class Tester {
     public static void main(String[] args) throws ParseException {
-        File file1 = new File("./tempfiles/temp2.txt");
-        File file2 = new File("./tempfiles/temp1.txt");
-        System.out.println(file1.getName());
+        String temp = "23232bds: sfs/fsd/s";
+        if (temp.contains(":")) {
+            String path = temp.split(":")[1].substring(1);
+            System.out.println(path);
+        }
     }
 
 }
