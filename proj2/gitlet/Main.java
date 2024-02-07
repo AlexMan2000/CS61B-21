@@ -11,7 +11,8 @@ public class Main {
     public static void main(String[] args) {
         // TODO: what if args is empty?
         if (args.length == 0) {
-            Utils.error("Must have at least one argument");
+            throw new RuntimeException(
+                    "No commands specified!");
         }
         String firstArg = args[0];
         switch(firstArg) {
@@ -46,12 +47,12 @@ public class Main {
                 break;
             case "global-log":
                 validateNumArgs("global-log", args, 1);
-                Repository.globalLog();
+//                Repository.globalLog();
                 break;
             case "find":
                 validateNumArgs("global-log", args, 2);
                 String findMessage = args[1];
-                Repository.find(findMessage);
+//                Repository.find(findMessage);
                 break;
             case "status":
                 validateNumArgs("add", args, 1);

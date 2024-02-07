@@ -34,13 +34,15 @@ public class Repository {
 //    public static final File ADDITION_DIR = join(STAGING_DIR, "addition");
 //    public static final File REMOVAL_DIR = join(STAGING_DIR, "removal");
 
-    // Good way of differentiating the blob and commit hash IDs
-    public static final File COMMIT_DIR = join(GITLET_DIR, "commits");
-    public static final File BLOB_DIR = join(GITLET_DIR, "blobs");
+    //
+//    public static final File COMMIT_DIR = join(GITLET_DIR, "commits");
+//    public static final File BLOB_DIR = join(GITLET_DIR, "blobs");
+    public static final File OBJECT_DIR = join(GITLET_DIR, "objects");
     public static final File HEADS_DIR = join(GITLET_DIR, "refs");
-    public static final File HEAD = join(GITLET_DIR, "HEAD.txt");
+    public static final File HEAD = join(GITLET_DIR, "HEAD");
     public static final File LOCAL_HEADS = join(HEADS_DIR, "heads");
     public static final File REMOTE_HEADS = join(HEADS_DIR, "remotes");
+    public static final File STAGING = join(GITLET_DIR, "index");
 
     /**
      * Create the .gitlet folder for version control, for init command
@@ -51,14 +53,17 @@ public class Repository {
             // Create ".gitlet" folder, the outmost one
             GITLET_DIR.mkdir();
             // Create a folder for commit objects and blob objects
-            COMMIT_DIR.mkdir();
-            BLOB_DIR.mkdir();
-            // Create a folder for head pointers(Sha1 ID of an arbitrary commit)
+            OBJECT_DIR.mkdir();
+            // Create a folder for head pointers
             HEADS_DIR.mkdir();
+            // Inside the heads directory, create
+            // 1. Local heads folder, which contains branch information and head pointers
             LOCAL_HEADS.mkdir();
+            // 2. Remote heads folder
             REMOTE_HEADS.mkdir();
         } else {
             System.out.println("A Gitlet version-control system already exists in the current directory.");
+            System.exit(0);
         }
     }
 
@@ -72,10 +77,14 @@ public class Repository {
         try{
             String UID = initial.getUID();
             HEAD.createNewFile();
-            writeContents(HEAD, "refs/heads/master");
+            // Write to HEAD file which branch the HEAD is pointer to, initially it is
+            // pointing to the latest commit in the master branch
+            // In detached head state, HEAD file stores a specific commit ID
+            writeContents(HEAD, "ref: refs/heads/master");
             // 4. Create a master branch, which is a pointer to the initial commit
             File masterPath = join(LOCAL_HEADS, "master");
             masterPath.createNewFile();
+            // The refs/heads/master file contains the initial commit ID
             writeContents(masterPath, UID);
         }catch (Exception e) {
             e.printStackTrace();
@@ -219,33 +228,33 @@ public class Repository {
     }
 
 
-    public static void globalLog() {
-        StringBuilder sb = new StringBuilder();
-        Commit curr;
-        for (String filename: plainFilenamesIn(COMMIT_DIR)) {
-            curr = getCommit(filename);
-            sb.append("==="+"\r\n");
-            sb.append(curr);
-            sb.append("\r\n\r\n");
-        }
-        System.out.println(sb);
-    }
+//    public static void globalLog() {
+//        StringBuilder sb = new StringBuilder();
+//        Commit curr;
+//        for (String filename: plainFilenamesIn(COMMIT_DIR)) {
+//            curr = getCommit(filename);
+//            sb.append("==="+"\r\n");
+//            sb.append(curr);
+//            sb.append("\r\n\r\n");
+//        }
+//        System.out.println(sb);
+//    }
 
 
-    public static void find(String message) {
-        StringBuilder sb = new StringBuilder();
-        boolean flag = false;
-        Commit curr;
-        for (String filename: plainFilenamesIn(COMMIT_DIR)) {
-            curr = getCommit(filename);
-            if (message.equals(curr.getMessage())) {
-                sb.append(curr.getUID());
-                System.out.println(sb);
-                return;
-            }
-        }
-        System.out.println("Found no commit with that message.");
-    }
+//    public static void find(String message) {
+//        StringBuilder sb = new StringBuilder();
+//        boolean flag = false;
+//        Commit curr;
+//        for (String filename: plainFilenamesIn(COMMIT_DIR)) {
+//            curr = getCommit(filename);
+//            if (message.equals(curr.getMessage())) {
+//                sb.append(curr.getUID());
+//                System.out.println(sb);
+//                return;
+//            }
+//        }
+//        System.out.println("Found no commit with that message.");
+//    }
 
 
 
@@ -454,7 +463,7 @@ public class Repository {
 
     /**
      * This function creates a blob at the specified filepath
-     * @param file filepath
+     * @param filePointer filepath
      */
     private static void createBlobAndSave(File filePointer) {
         Blob newBlob = new Blob(filePointer);

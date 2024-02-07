@@ -11,11 +11,11 @@ import java.util.*;
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author AlexMan
  */
 public class Commit implements Serializable {
 
-    private static final File savePath = Repository.COMMIT_DIR;
+    private static final File savePath = Repository.OBJECT_DIR;
 
     /**
      * TODO: add instance variables here.
@@ -33,6 +33,8 @@ public class Commit implements Serializable {
     private Map<String, String> pathToBlob = new HashMap<>();
     // All parents' ID of current Commit Object, could be more than one when merging happens
     private List<String> parentID;
+    // Used to distinguish between commit and blob
+    private static final String TYPE = "commit";
 
     /** The message of this Commit, specified by the user */
     private String message;
@@ -143,6 +145,10 @@ public class Commit implements Serializable {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getType() {
+        return TYPE;
     }
 
     @Override
