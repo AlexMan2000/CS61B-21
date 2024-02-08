@@ -1,20 +1,19 @@
+# Set up a simple chain of commits and check their log.
 I definitions.inc
 > init
 <<<
-+ a.txt wug.txt
-> add a.txt
++ wug.txt wug.txt
+> add wug.txt
 <<<
 > commit "added wug"
 <<<
 > log
 ===
 ${COMMIT_HEAD}
-${DATE}
 added wug
 
 ===
 ${COMMIT_HEAD}
-${DATE}
 initial commit
 
 <<<*
