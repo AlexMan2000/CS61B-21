@@ -4,7 +4,7 @@ from subprocess import \
 from os.path import abspath, basename, dirname, exists, join, splitext
 from getopt import getopt, GetoptError
 from os import chdir, environ, getcwd, mkdir, remove, access, W_OK
-from shutil import copyfile, rmtree
+from shutil import copyfile, rmtree, copy
 from math import log
 
 SHORT_USAGE = """\

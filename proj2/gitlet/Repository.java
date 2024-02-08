@@ -208,12 +208,11 @@ public class Repository {
             sb.append("==="+"\r\n");
             sb.append(curr);
             sb.append("\r\n\r\n");
-            System.out.println(curr.getParentID());
             curr = getCommit(curr.getParentID().get(0));
         }
         sb.append("==="+"\r\n");
         sb.append(curr);
-        sb.append("\r\n\r\n");
+        sb.append("\r\n");
         System.out.println(sb);
     }
 

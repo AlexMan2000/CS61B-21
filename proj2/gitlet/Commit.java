@@ -54,12 +54,12 @@ public class Commit implements Serializable {
         // 如果没有Parent
         if (this.parentID.size() == 0) {
             // EEE MMM d HH:mm:ss yyyy Z format, for gradescope
-            SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
+            SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
             sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
             Date date = new Date(0L);
             this.timestamp = sdf.format(date);
         } else {
-            SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
+            SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
             sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
             Date date = new Date();
             this.timestamp = sdf.format(date);
@@ -106,7 +106,7 @@ public class Commit implements Serializable {
      */
     public String generateID() {
         // SHA1 ID uniquely determined by (timestamp, pathToBlob, parentID, TYPE)
-        return Utils.sha1(timestamp, pathToBlob.toString(), parentID.toString(), TYPE);
+        return Utils.sha1(pathToBlob.toString(), parentID.toString(), message, TYPE, timestamp);
     }
 
     /**

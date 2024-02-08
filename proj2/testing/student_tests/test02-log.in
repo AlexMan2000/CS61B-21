@@ -1,0 +1,20 @@
+I definitions.inc
+> init
+<<<
++ a.txt wug.txt
+> add a.txt
+<<<
+> commit "added wug"
+<<<
+> log
+===
+${COMMIT_HEAD}
+${DATE}
+added wug
+
+===
+${COMMIT_HEAD}
+${DATE}
+initial commit
+
+<<<*
