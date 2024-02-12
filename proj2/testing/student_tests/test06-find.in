@@ -1,0 +1,26 @@
+# Set up a simple chain of commits and check their log.
+I definitions.inc
+> init
+<<<
++ a.txt wug.txt
+> add a.txt
+<<<
+> commit "added a.txt"
+<<<
++ b.txt notwug.txt
+> add b.txt
+<<<
+> commit "added b.txt"
+<<<
+> find "added a.txt"
+===
+${COMMIT_HEAD}
+added a.txt
+
+<<<*
+> find "added b.txt"
+===
+${COMMIT_HEAD}
+added b.txt
+
+<<<*

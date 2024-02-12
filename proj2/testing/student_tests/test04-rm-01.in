@@ -5,7 +5,7 @@
 <<<
 > status
 === Branches ===
-\*master
+*master
 
 === Staged Files ===
 a.txt
@@ -16,4 +16,19 @@ a.txt
 
 === Untracked Files ===
 
-<<<*
+<<<
+> rm a.txt
+<<<
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<

@@ -1,0 +1,52 @@
+> init
+<<<
++ a.txt wug.txt
+> add a.txt
+<<<
+> status
+=== Branches ===
+\*master
+
+=== Staged Files ===
+a.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<*
+> branch subBranch1
+<<<
+> status
+=== Branches ===
+\*master
+subBranch1
+
+=== Staged Files ===
+a.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<*
+> checkout subBranch1
+<<<
+> status
+=== Branches ===
+master
+\*subBranch1
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<*

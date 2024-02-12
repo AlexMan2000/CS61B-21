@@ -42,4 +42,9 @@ public class Stage implements Serializable {
         this.pathToBlobIDAddition.clear();
         this.pathToBlobIDRemoval.clear();
     }
+
+    @Override
+    public String toString() {
+        return null;
+    }
 }

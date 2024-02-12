@@ -1,0 +1,171 @@
+# Set up a simple chain of commits and check their log.
+I definitions.inc
+> init
+<<<
++ a.txt wug.txt
+> add a.txt
+<<<
+> status
+=== Branches ===
+\*master
+
+=== Staged Files ===
+a.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<*
+> branch subBranch1
+<<<
+> status
+=== Branches ===
+\*master
+subBranch1
+
+=== Staged Files ===
+a.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<*
+> checkout subBranch1
+<<<
+* a.txt
+> status
+=== Branches ===
+master
+\*subBranch1
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<*
++ temp1.txt temp1.txt
++ temp2.txt temp2.txt
++ a.txt wug.txt
+> add temp1.txt
+<<<
+> add temp2.txt
+<<<
+> commit "added temp1.txt and temp2.txt to subBranch1"
+<<<
+> add a.txt
+<<<
+> status
+=== Branches ===
+master
+\*subBranch1
+
+=== Staged Files ===
+a.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<*
+> branch subBranch2
+<<<
+> status
+=== Branches ===
+master
+\*subBranch1
+subBranch2
+
+=== Staged Files ===
+a.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<*
+> commit "added a.txt to subBranch1"
+<<<
+> status
+=== Branches ===
+master
+\*subBranch1
+subBranch2
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<*
+E a.txt
+> global-log
+===
+${COMMIT_HEAD}
+${ARBLINE}
+
+===
+${COMMIT_HEAD}
+${ARBLINE}
+
+===
+${COMMIT_HEAD}
+${ARBLINE}
+
+<<<*
+> log
+===
+${COMMIT_HEAD}
+added a.txt to subBranch1
+
+===
+${COMMIT_HEAD}
+added temp1.txt and temp2.txt to subBranch1
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+> checkout master
+<<<
+> status
+=== Branches ===
+\*master
+subBranch1
+subBranch2
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<*
+> log
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+* temp1.txt
+* temp2.txt
+* a.txt

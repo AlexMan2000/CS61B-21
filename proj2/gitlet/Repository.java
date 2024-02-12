@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.sql.Array;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static gitlet.Utils.*;
 
@@ -101,10 +103,9 @@ public class Repository {
                 String blobID = fileNameToBlob.get(filename);
                 // Read the Blob Object from File System
                 Blob blob = Blob.fromFile(blobID);
-                File blobFilePointer = blob.getFileContent();
                 // Compare the content of the file in the CWD with that in the commit pointed by the active point
                 // If the content are the same, do not add to the staging area and  do not create the blob
-                if (!Arrays.equals(readContents(blobFilePointer),readContents(filePointer))) {
+                if (!Arrays.equals(blob.getFileContent(),readContents(filePointer))) {
                     // If not the same, create a blob and save it under the blobs folder
                     createBlobAndSave(filePointer); // Save to the blob folder
                 }
@@ -116,6 +117,7 @@ public class Repository {
             System.out.println("File does not exist.");
             System.exit(0);
         }
+
     }
 
 
@@ -131,33 +133,43 @@ public class Repository {
         File cwdFilePointer = join(CWD, filename);
         // See if the file is staged for addition
         Map<String, String> addingStagePathToBlob = stage.getPathToBlobIDAddition();
+        boolean staged = false;
+        boolean tracked = false;
         if(addingStagePathToBlob.containsKey(filename)) {
             // If staged for addition, just delete it from the addition map
+            staged = true;
             addingStagePathToBlob.remove(filename);
-        } else {
-            // See if the file is tracked in the current commit
-            if (commit.getPathToBlob().containsKey(filename)) {
-                // See if the file to be removed actually exists
-                File fileToBeDeleted = join(CWD, filename);
-                if (fileToBeDeleted.exists()) {
-                    // Delete the file in the CWD
-                    fileToBeDeleted.delete();
-                }
-                // Delete it from the addition map and add it to the removal map
-                Map<String, String> removalStagePathToBlob = stage.getPathToBlobIDRemoval();
-                String fileBlobUID = Blob.fromFile(addingStagePathToBlob.get(filename)).getUID();
-                addingStagePathToBlob.remove(filename);
-                removalStagePathToBlob.put(filename, fileBlobUID);
-                cwdFilePointer.delete();
-            } else {
-                // The file is neither in the staging area nor in the commit
-                // i.e. the file is untracked by git
-                System.out.println("No reason to remove the file.");
-            }
         }
-
-
+        // See if the file is tracked in the current commit
+        if (commit.getPathToBlob().containsKey(filename)) {
+            tracked = true;
+            // See if the file to be removed actually exists
+            File fileToBeDeleted = join(CWD, filename);
+            if (fileToBeDeleted.exists()) {
+                // Delete the file in the CWD
+                fileToBeDeleted.delete();
+            }
+            // If after commit, user manually delete it from the directory
+            // Delete it from the addition map and add it to the removal map
+            Map<String, String> removalStagePathToBlob = stage.getPathToBlobIDRemoval();
+            String fileBlobUID = Blob.fromFile(commit.getPathToBlob().get(filename)).getUID();
+            addingStagePathToBlob.remove(filename);
+            removalStagePathToBlob.put(filename, fileBlobUID);
+            cwdFilePointer.delete();
+        }
+        if (!staged && !tracked) {
+            // The file is neither in the staging area nor in the commit
+            // i.e. the file is untracked by git
+            System.out.println("No reason to remove the file.");
+        }
+        stage.saveStage();
     }
+
+
+    /**
+     * Take a snapshot of current working directory and make a commit
+     * @param message The commit message specified by users
+     */
     public static void commit(String message) {
         if (message == null) {
             System.out.println("Please enter a commit message.");
@@ -195,12 +207,15 @@ public class Repository {
         // 6. Serialize and save the commit object to the disk
         newCommit.saveCommit();
         // 7. Move the head pointer of the current branch and HEAD
-        writeContents(HEAD, newCommit.getUID());
-        File masterPath = join(LOCAL_HEADS, "master");
+        String currentBranch = parseCurrentBranchHEAD(readContentsAsString(HEAD));
+        File masterPath = join(LOCAL_HEADS, currentBranch);
         writeContents(masterPath, newCommit.getUID());
     }
 
 
+    /**
+     * Print out all the commit information(in backward ordering)
+     */
     public static void log() {
         StringBuilder sb = new StringBuilder();
         Commit curr = getCommit();
@@ -217,6 +232,9 @@ public class Repository {
     }
 
 
+    /**
+     * Print out all the commit information(in arbitrary ordering)
+     */
     public static void globalLog() {
         StringBuilder sb = new StringBuilder();
         Commit curr;
@@ -236,30 +254,42 @@ public class Repository {
     }
 
 
-//    public static void find(String message) {
-//        StringBuilder sb = new StringBuilder();
-//        boolean flag = false;
-//        Commit curr;
-//        for (String filename: plainFilenamesIn(COMMIT_DIR)) {
-//            curr = getCommit(filename);
-//            if (message.equals(curr.getMessage())) {
-//                sb.append(curr.getUID());
-//                System.out.println(sb);
-//                return;
-//            }
-//        }
-//        System.out.println("Found no commit with that message.");
-//    }
+    /**
+     * Find commit by its message
+     * @param message The commit message specified by the users
+     */
+    public static void find(String message) {
+        StringBuilder sb = new StringBuilder();
+        Commit curr;
+        for (String filename: plainFilenamesIn(OBJECT_DIR)) {
+            // Circumvent those non-commit object
+            try {
+                curr = getCommit(filename);
+                curr.getType();
+                if (curr.getMessage().equals(message)) {
+                    sb.append("==="+"\r\n");
+                    sb.append(curr);
+                    sb.append("\r\n");
+                }
+            } catch(Exception e) {
+                continue;
+            }
+        }
+        System.out.println(sb);
+    }
 
 
-
+    /**
+     * Print out the current status of different regions of gitlet internals.
+     */
     public static void status() {
         StringBuilder sb = new StringBuilder();
         sb.append("=== Branches ==="+"\r\n");
-        String currentCommitSHA1ID = parseHEAD(readContentsAsString(HEAD));
+//        String currentCommitSHA1ID = parseHEAD(readContentsAsString(HEAD));
+        String currentBranchName = parseCurrentBranchHEAD(readContentsAsString(HEAD));
         for (String filename: plainFilenamesIn(LOCAL_HEADS)) {
-            String branchFrontID = readContentsAsString(join(LOCAL_HEADS,filename));
-            if (currentCommitSHA1ID.equals(branchFrontID)) {
+//            String branchFrontID = readContentsAsString(join(LOCAL_HEADS,filename));
+            if (currentBranchName.equals(filename)) {
                 sb.append("*" + filename + "\r\n");
             } else {
                 sb.append(filename + "\r\n");
@@ -294,15 +324,15 @@ public class Repository {
 
 
     /**
-     *
-     * @param filename
+     * Recover the file from current commit
+     * @param filename the file to be recovered
      */
     public static void checkoutFile(String filename) {
         Commit headCommit = getCommit();
         String blobID = headCommit.getBlobFromFileName(filename);
         if (blobID != null) {
             Blob blob = Blob.fromFile(blobID);
-            writeContents(join(CWD, filename), blob.getFileBytes());
+            writeContents(join(CWD, filename), blob.getFileContent());
         } else {
             System.out.println("File does not exist in that commit.");
         }
@@ -319,7 +349,7 @@ public class Repository {
             String blobID = commitObj.getBlobFromFileName(filename);
             if (blobID != null) {
                 Blob blob = Blob.fromFile(blobID);
-                writeContents(join(CWD, filename), blob.getFileBytes());
+                writeContents(join(CWD, filename), blob.getFileContent());
             }
         } catch (Exception e) {
             System.out.println("No commit with that id exists.");
@@ -329,63 +359,76 @@ public class Repository {
 
 
     /**
-     *
+     * Switch to a different branch, note that this is different from real git
      * @param branchName
      */
     public static void checkoutBranch(String branchName) {
-        File branchFilePointer = join(LOCAL_HEADS, branchName + ".txt");
-        String currentBranchName = getCurrentBranchName();
+        File branchFilePointer = join(LOCAL_HEADS, branchName);
+        // Get the current branch name
+        String currentBranchName = parseCurrentBranchHEAD(readContentsAsString(HEAD));
+        // Failure Case 1: Branch Name DNE
         if (!branchFilePointer.exists()) {
             System.out.println("No such branch exists.");
             return;
         }
+        // Failure Case 2: Branch Name is the current branch name
         if (currentBranchName.equals(branchName)) {
             System.out.println("No need to checkout the current branch.");
             return;
         }
-        Commit currentCommit = getCommit();
-        Commit branchHeadCommit = getCommit(readContentsAsString(branchFilePointer));
 
-        Map<String, String> currentFileNameToBlobIdMapping = currentCommit.getPathToBlob();
-        Map<String, String> branchFileNameToBlobIdMappping = branchHeadCommit.getPathToBlob();
-        for (String filename: branchFileNameToBlobIdMappping.keySet()) {
-            // Check if the file is tracked in both commit (to overwrite later)
-            if (currentFileNameToBlobIdMapping.containsKey(filename)) {
-                // File is tracked in both commit, then overwrite the file in the current commit with the one in checked-out branch
-                Blob branchBlob = Blob.fromFile(branchFileNameToBlobIdMappping.get(filename));
-                // Overwrite the file in the CWD
-                writeContents(join(CWD,filename), branchBlob.getFileBytes());
-            } else {
-                // File is only tracked in branchHeadCommit but not in the current commit
-                if (join(CWD, filename).exists()) {
-                    // If there is a file in the CWD with the "filename" but not tracked
-                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
-                    return;
-                } else {
-                    // Delete the files that are not tracked in the current commit
-                    join(CWD,filename).delete();
-                }
-            }
-        }
+        checkoutCommit(readContentsAsString(branchFilePointer));
 
-        // Clear the staging area.
-        Stage currentStage = Stage.fromFile();
-        currentStage.clearFileMapping();
+//        Commit currentCommit = getCommit();
+//        Commit branchHeadCommit = getCommit(readContentsAsString(branchFilePointer));
+//
+//        Map<String, String> currentFileNameToBlobIdMapping = currentCommit.getPathToBlob();
+//        Map<String, String> branchFileNameToBlobIdMappping = branchHeadCommit.getPathToBlob();
+//
+//        for (String filename: branchFileNameToBlobIdMappping.keySet()) {
+//            boolean inCurrent = currentFileNameToBlobIdMapping.containsKey(filename);
+//            boolean inCWD = join(CWD, filename).exists();
+//
+//            Blob branchBlob = Blob.fromFile(branchFileNameToBlobIdMappping.get(filename));
+//            // Failure Case 3: Filename is in new branch, not in current branch but in CWD
+//            if (!inCurrent && inCWD) {
+//                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+//                System.exit(0);
+//            }
+//            // Overwrite the file in the CWD
+//            writeContents(join(CWD, filename), branchBlob.getFileBytes());
+//        }
+//
+//        // Delete all the files tracked by current branch but not tracked in target branch
+//        for (String filename: plainFilenamesIn(CWD)) {
+//            boolean inBranch = branchFileNameToBlobIdMappping.containsKey(filename);
+//            if (!inBranch) {
+//                join(CWD, filename).delete();
+//            }
+//        }
+//
+//        // Clear the staging area.
+//        Stage currentStage = Stage.fromFile();
+//        currentStage.clearFileMapping();
+//        currentStage.saveStage();
+
+        // Write the new branch information to HEAD(write refs/heads/branch name)
+        writeContents(HEAD, "ref: refs/heads/" + branchName);
     }
 
     /**
-     * Create a new branch
+     * Create a new branch, with its head pointing to current commit
      * @param name
      */
     public static void branch(String name) {
         for(String filename: plainFilenamesIn(LOCAL_HEADS)) {
-            if ((name + ".txt").equals(filename)) {
+            if ((name).equals(filename)) {
                 System.out.println("A branch with that name already exists.");
-                return;
+                System.exit(0);
             }
         }
         String currentCommitID = getCommit().getUID();
-        File branchPath = join(LOCAL_HEADS, name + ".txt");
+        File branchPath = join(LOCAL_HEADS, name);
         try {
             branchPath.createNewFile();
         } catch (Exception e) {
@@ -395,31 +438,88 @@ public class Repository {
     }
 
 
-    public static void rmBranch(String name) {
-        for (String filename: plainFilenamesIn(LOCAL_HEADS)) {
-            String targetFileName = name + ".txt";
-            File targetFilePointer = join(LOCAL_HEADS, name + ".txt");
-            String headPointerUID = getCommit().getUID();
-            if (targetFileName.equals(filename)) {
-                if (!readContentsAsString(targetFilePointer).equals(headPointerUID)) {
-                    targetFilePointer.delete();
-                } else {
-                    System.out.println("Cannot remove the current branch.");
-                }
-                return;
+    public static void rmBranch(String branchName) {
+        String currentBranchName = parseCurrentBranchHEAD(readContentsAsString(HEAD));
+        if (currentBranchName.equals(branchName)) {
+            System.out.println("Cannot remove the current branch.");
+            System.exit(0);
+        }
+        for (String nameBranch: plainFilenamesIn(LOCAL_HEADS)) {
+            if (nameBranch.equals(branchName)) {
+                join(LOCAL_HEADS, nameBranch).delete();
+                System.exit(0);
             }
         }
         System.out.println("A branch with that name does not exist.");
+        System.exit(0);
     }
 
 
+    /**
+     * Check out all the files tracked by the given commit
+     * @param commitID
+     */
     public static void reset(String commitID) {
-
+        if (!checkCommit(commitID)) {
+            System.out.println("No commit with that id exists.");
+            System.exit(0);
+        }
+        checkCommit(commitID);
     }
 
 
     public static void merge(String branchName) {
 
+    }
+
+
+
+
+
+/**
+ * Helper functions
+ * =====================================================================
+ */
+
+
+
+    /**
+     * Switch to an arbitrary commit with commitID
+     * @param commitID The commit ID of an arbitrary commit.
+     */
+    public static void checkoutCommit(String commitID) {
+        Commit currentCommit = getCommit();
+        Commit targetCommit = getCommit(commitID);
+
+        Map<String, String> currentFileNameToBlobIdMapping = currentCommit.getPathToBlob();
+        Map<String, String> targetFileNameToBlobIdMappping = targetCommit.getPathToBlob();
+
+        for (String filename: targetFileNameToBlobIdMappping.keySet()) {
+            boolean inCurrent = currentFileNameToBlobIdMapping.containsKey(filename);
+            boolean inCWD = join(CWD, filename).exists();
+
+            Blob branchBlob = Blob.fromFile(targetFileNameToBlobIdMappping.get(filename));
+            // Failure Case 3: Filename is in new branch, not in current branch but in CWD
+            if (!inCurrent && inCWD) {
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+            // Overwrite the file in the CWD
+            writeContents(join(CWD, filename), branchBlob.getFileBytes());
+        }
+
+        // Delete all the files tracked by current branch but not tracked in target branch
+        for (String filename: plainFilenamesIn(CWD)) {
+            boolean inBranch = targetFileNameToBlobIdMappping.containsKey(filename);
+            if (!inBranch) {
+                join(CWD, filename).delete();
+            }
+        }
+
+        // Clear the staging area.
+        Stage currentStage = Stage.fromFile();
+        currentStage.clearFileMapping();
+        currentStage.saveStage();
     }
 
 
@@ -432,10 +532,49 @@ public class Repository {
         return Commit.fromFile(parseHEAD(content));
     }
 
-//    private static GitObject getObject(String UID) {
-//
-//    }
+    /**
+     * Check whether a commit object with commitID exists
+     * @param commitID The commitID that pinponts a unique commit object
+     * @return Whether that commit has been created
+     */
+    private static boolean checkCommit(String commitID) {
+        for (String commitSHA1: plainFilenamesIn(OBJECT_DIR)) {
+            if (commitSHA1.equals(commitID)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
+
+    /**
+     * Parse the content of HEAD file and return whether the current HEAD is in detached state
+     * @param content The content of the HEAD file
+     * @return whether the current HEAD is in detached state
+     */
+    private static boolean parseHEADDetached(String content) {
+        return content.contains(":") ? false: true;
+    }
+
+    /**
+     * Return the current branch name
+     * @param content The content of the HEAD file
+     * @return
+     */
+    private static String parseCurrentBranchHEAD(String content) {
+        if (!parseHEADDetached(content)) {
+            Pattern pattern = Pattern.compile(".*/(\\w+)");
+            Matcher m = pattern.matcher(content);
+            if (m.matches()) {
+                return m.group(1);
+            } else {
+                return null;
+            }
+        } else {
+            // 2. It is a SHA1 ID, directly return, DETACHED HEAD STATE
+            return content;
+        }
+    }
 
     /**
      * Return the SHA1 ID of a commit given the content in the HEAD file
@@ -444,7 +583,7 @@ public class Repository {
      */
     private static String parseHEAD(String content) {
         // We could use the property that SHA1 ID only contains 0-9a-f
-        if (content.contains(":")) {
+        if (!parseHEADDetached(content)) {
             // 1. It is not SHA1ID, but ref: refs/heads/current_branch
             String[] splits = content.split(":");
 
@@ -465,22 +604,11 @@ public class Repository {
         return Commit.fromFile(UID);
     }
 
+
     /**
-     * Get the name of the current branch
+     * Get the current state of staging area
      * @return
      */
-    private static String getCurrentBranchName() {
-        String currentHead = readContentsAsString(HEAD);
-        for (String filename: plainFilenamesIn(LOCAL_HEADS)) {
-            if (readContentsAsString(join(LOCAL_HEADS, filename)).equals(currentHead)) {
-                return filename.substring(0, filename.length() - 4);
-            }
-        }
-        return null;
-    }
-
-
-
     private static Stage getStage() {
         return Stage.fromFile();
     }
@@ -491,21 +619,16 @@ public class Repository {
      * @param filePointer filepath
      */
     private static void createBlobAndSave(File filePointer) {
+
         Blob newBlob = new Blob(filePointer);
         newBlob.saveBlob();
         addStaging(filePointer, newBlob.getUID());
     }
+
 
     private static void addStaging(File filePointer, String BID) {
         Stage stage = getStage();
         stage.getPathToBlobIDAddition().put(filePointer.getName(), BID);
         stage.saveStage();
     }
-
-    private static void rmStaging() {
-//        Stage stage = Stage.fromFile();
-//        stage.getPathToBlobIDAddition()
-    }
-
-
 }

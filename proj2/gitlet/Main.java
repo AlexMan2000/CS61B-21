@@ -48,7 +48,7 @@ public class Main {
             case "find":
                 validateNumArgs("global-log", args, 2);
                 String findMessage = args[1];
-//                Repository.find(findMessage);
+                Repository.find(findMessage);
                 break;
             case "status":
                 validateNumArgs("add", args, 1);
@@ -60,18 +60,18 @@ public class Main {
                 int numArgs = args.length;
                 switch(numArgs) {
                     case 2:
-                        // Usage 3: git checkout -- [file name]
-
+                        // Usage: checkout [branch name]
+                        Repository.checkoutBranch(args[1]);
                         break;
                     case 3:
-                        // Usage 1: git checkout [commit id] -- [file name]
+                        // Usage: checkout -- [file name]
+                        Repository.checkoutFile(args[2]);
                         break;
                     case 4:
-                        // Usage 2
+                        // Usage: checkout [commit id] -- [file name]
+                        Repository.checkoutFile(args[1], args[3]);
                         break;
                 }
-                String branchName = args[1];
-//                Repository.checkout(branchName);
                 break;
             case "branch":
                 validateNumArgs("branch", args, 2);

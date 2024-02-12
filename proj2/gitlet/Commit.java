@@ -71,7 +71,7 @@ public class Commit implements Serializable {
     /**
      * Get the blob SHAID from the filename specified
      * @param filename the name of the file, not the relative path of the file, i.e. filename.txt
-     * @return The Blob SHA1 ID, if
+     * @return The Blob SHA1 ID, if doesn't exist, return null
      */
     public String getBlobFromFileName(String filename) {
         if (this.pathToBlob.containsKey(filename)) {

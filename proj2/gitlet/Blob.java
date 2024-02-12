@@ -12,12 +12,14 @@ public class Blob implements Serializable {
     private File filePointer; // A pointer to the stored file on the disk
     private String fileName;  // The file that blob object is pointing to
 
+    private byte[] fileContent; // The actual file content
     private final String TYPE = "blob";
     // The same Blob object means the same fileName and the same content from filePointer
 
     public Blob(File filePointer) {
         this.filePointer = filePointer;
         this.fileName = filePointer.getName();
+        this.fileContent = Utils.readContents(filePointer);
         this.UID = this.generateID();
     }
 
@@ -33,8 +35,8 @@ public class Blob implements Serializable {
         return Utils.readObject(Utils.join(SAVE_DIR, UID), Blob.class);
     }
 
-    public File getFileContent() {
-        return filePointer;
+    public byte[] getFileContent() {
+        return fileContent;
     }
 
     public byte[] getFileBytes() {
@@ -47,7 +49,7 @@ public class Blob implements Serializable {
 
     // Same Blob means the same content.
     public String generateID() {
-        return Utils.sha1(Utils.readContents(filePointer),fileName,TYPE);
+        return Utils.sha1(fileContent, fileName, TYPE);
     }
 
     public String getUID() {
