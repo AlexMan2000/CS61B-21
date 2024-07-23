@@ -237,8 +237,12 @@ public class Repository {
      */
     public static void globalLog() {
         StringBuilder sb = new StringBuilder();
+        List<String> filenameList = plainFilenamesIn(OBJECT_DIR);
+        if (filenameList == null || filenameList.size() == 0) {
+            throw new RuntimeException("Internal Error, shouldn't reach here!");
+        }
         Commit curr;
-        for (String filename: plainFilenamesIn(OBJECT_DIR)) {
+        for (String filename: filenameList) {
             // Circumvent those non-commit object
             String type = getGitObjectType(filename);
             if (!type.equals("commit")) {
@@ -249,7 +253,7 @@ public class Repository {
             sb.append(curr);
             sb.append("\r\n\r\n");
         }
-        System.out.println(sb);
+        System.out.print(sb);
     }
 
 

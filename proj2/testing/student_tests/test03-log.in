@@ -1,4 +1,5 @@
 # Basic Test of gitlet log
+I definitions.inc
 > init
 <<<
 + a.txt wug.txt

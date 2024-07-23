@@ -1,4 +1,7 @@
 # Basic test for git status
+I definitions.inc
+> init
+<<<
 > status
 === Branches ===
 \*master

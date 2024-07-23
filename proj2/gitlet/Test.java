@@ -1,7 +1,5 @@
 package gitlet;
 
-import jdk.nashorn.internal.runtime.regexp.joni.Regex;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
