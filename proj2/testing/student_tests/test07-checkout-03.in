@@ -1,0 +1,8 @@
+# Checkout the file to the version of current commit
+I definitions.inc
+> init
+<<<
++ a.txt wug.txt
+> add a.txt
+<<<
+> commit

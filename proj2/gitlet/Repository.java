@@ -240,12 +240,11 @@ public class Repository {
         Commit curr;
         for (String filename: plainFilenamesIn(OBJECT_DIR)) {
             // Circumvent those non-commit object
-            try {
-                curr = getCommit(filename);
-                curr.getType();
-            } catch(Exception e) {
+            String type = getGitObjectType(filename);
+            if (!type.equals("commit")) {
                 continue;
             }
+            curr = Commit.fromFile(filename);
             sb.append("==="+"\r\n");
             sb.append(curr);
             sb.append("\r\n\r\n");
@@ -285,10 +284,8 @@ public class Repository {
     public static void status() {
         StringBuilder sb = new StringBuilder();
         sb.append("=== Branches ==="+"\r\n");
-//        String currentCommitSHA1ID = parseHEAD(readContentsAsString(HEAD));
         String currentBranchName = parseCurrentBranchHEAD(readContentsAsString(HEAD));
         for (String filename: plainFilenamesIn(LOCAL_HEADS)) {
-//            String branchFrontID = readContentsAsString(join(LOCAL_HEADS,filename));
             if (currentBranchName.equals(filename)) {
                 sb.append("*" + filename + "\r\n");
             } else {
@@ -323,6 +320,8 @@ public class Repository {
     }
 
 
+
+
     /**
      * Recover the file from current commit
      * @param filename the file to be recovered
@@ -354,7 +353,6 @@ public class Repository {
         } catch (Exception e) {
             System.out.println("No commit with that id exists.");
         }
-
     }
 
 
@@ -522,6 +520,21 @@ public class Repository {
         currentStage.saveStage();
     }
 
+    /**
+     * Get the information needed for status command to print out modifications/untrackedness
+     * @param currentBranchName Current branch name
+     * @return
+     */
+    private static List<Map<String, String>> getFileDynamics(String currentBranchName) {
+        List<Map<String, String>> res = new ArrayList<>();
+        Map<String, String> modified = new HashMap<>();
+        Map<String, String> untracked = new HashMap<>();
+        res.add(modified);
+        res.add(untracked);
+        return res;
+    }
+
+
 
     /**
      * Get the commit that's being pointed by HEAD
@@ -553,7 +566,7 @@ public class Repository {
      * @return whether the current HEAD is in detached state
      */
     private static boolean parseHEADDetached(String content) {
-        return content.contains(":") ? false: true;
+        return !content.contains(":");
     }
 
     /**
@@ -584,7 +597,8 @@ public class Repository {
     private static String parseHEAD(String content) {
         // We could use the property that SHA1 ID only contains 0-9a-f
         if (!parseHEADDetached(content)) {
-            // 1. It is not SHA1ID, but ref: refs/heads/current_branch
+            // 1. It is not SHA1ID, but ref: refs/heads/current_branch, showing that the head points to
+            // the latest commit in a branch.
             String[] splits = content.split(":");
 
             File filepath = join(GITLET_DIR, splits[1].substring(1));
@@ -593,6 +607,13 @@ public class Repository {
             // 2. It is a SHA1 ID, directly return
             return content;
         }
+    }
+
+
+    private static String getGitObjectType(String UID) {
+        GitObject gitObject = GitObject.readGitObject(UID);
+        String type = gitObject.getType();
+        return type;
     }
 
     /**

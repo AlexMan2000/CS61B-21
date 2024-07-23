@@ -13,7 +13,7 @@ import java.util.*;
  *
  *  @author AlexMan
  */
-public class Commit implements Serializable {
+public class Commit extends GitObject implements Serializable {
 
     private static final File savePath = Repository.OBJECT_DIR;
 
@@ -169,6 +169,7 @@ public class Commit implements Serializable {
         this.message = message;
     }
 
+    @Override
     public String getType() {
         return TYPE;
     }

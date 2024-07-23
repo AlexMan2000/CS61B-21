@@ -3,7 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.Serializable;
 
-public class Blob implements Serializable {
+public class Blob extends GitObject implements Serializable {
     // Not serialized
     private static final File SAVE_DIR = Repository.OBJECT_DIR;
 
@@ -60,6 +60,7 @@ public class Blob implements Serializable {
         this.UID = UID;
     }
 
+    @Override
     public String getType() {
         return TYPE;
     }

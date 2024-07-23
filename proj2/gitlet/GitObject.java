@@ -31,4 +31,6 @@ public abstract class GitObject implements Serializable {
      * @return The generated SHA1 ID of current commit object
      */
     public abstract String generateID();
+
+    public abstract String getType();
 }
