@@ -1,0 +1,18 @@
+# Basic Test of gitlet log
+> init
+<<<
++ a.txt wug.txt
+> add a.txt
+<<<
+> commit "added wug"
+<<<
+> log
+===
+${COMMIT_HEAD}
+added wug
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
